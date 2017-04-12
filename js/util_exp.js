@@ -2,11 +2,23 @@
  * 创建实验地图
  */
 function createExpMap() {
+
+    //TODO 生成实验数据
+    var y = 20;//40, 60
+    function x() {
+        return Math.random() * 60;
+        //40,20
+    }
+    var density = 8;//2,4,8,12,16,24
+    var indexOfProv = parseInt(Math.random()*32);//全局最大所在的省份
+    
+
+
     var width = 960,
         height = 500;
     var colors = ["#FF0000", "#FFFF00"];
     var colorScale = d3.scale.linear()
-        .domain([150, 0]).range(colors);
+        .domain([100, 0]).range(colors);
 
     var projection = d3.geo.mercator()
         .center([107, 31])
@@ -16,7 +28,8 @@ function createExpMap() {
     var path = d3.geo.path()
         .projection(projection);
 
-    d3.json("data/china_provinces.json",
+    //加载中国地图,china_provinces_remove2删除了香港与澳门
+    d3.json("data/china_provinces_remove2.json",
         function (data) {
             var provinces = data.features;
             var sel = d3.select("body").append("svg")
@@ -41,7 +54,7 @@ function createExpMap() {
             var pattern = upd.enter()
                 .append("pattern")
                 .attr("id", function (d) {
-                    console.log(d.id)
+                    console.log(d.id);
                     return "pat" + d.id;
                 })
                 .attr("patternUnits", "objectBoundingBox")
@@ -50,7 +63,7 @@ function createExpMap() {
                 .attr("x", 0)
                 .attr("y", 0);
             pattern.append("path")
-                .attr("stroke-width", 0.2)//TODO
+                .attr("stroke-width", 0.2)//绘制省份的边界
                 .attr("fill", "none")
                 .attr("stroke", function (d) {
                     return "#000000";
@@ -93,7 +106,6 @@ function createExpMap() {
              * <circle cx="145" cy="40" r="20"
              style="fill: #0000ff; clip-path: url(#clipPath); " />
              */
-            //var i = 26
             for (var i = 0; i < provinces.length; i++) {
                 var d = provinces[i];
 
@@ -106,15 +118,14 @@ function createExpMap() {
                     .attr("height", bbox.height)
                     .attr("transform", "translate(" + bbox.x + "," + bbox.y + ")");
 
-                var size = 12;
-                for (var j = 0; j < size; j++) {
+                for (var j = 0; j < density; j++) {
                     tempBarG.append("rect")
                         .attr("id", "tempbarRectId" + j)
-                        .attr("x", (j * bbox.width ) / size)//TODO sort
-                        .attr("width", bbox.width / size)
+                        .attr("x", (j * bbox.width ) / density)//TODO sort
+                        .attr("width", bbox.width / density)
                         .attr("y", 0)
                         .attr("height", bbox.height)
-                        .attr("fill", colorScale(Math.random()*100))//TODO
+                        .attr("fill", colorScale(x()))//TODO
                         .attr("clip-path", "url(#clippath" + provinces[i].id + ")");
                 }
 
@@ -129,7 +140,7 @@ function createExpMap() {
             for (var i = 0; i < provinces.length; i++) {
                 var d = provinces[i];
                 var bbox = Snap.path.getBBox(path(provinces[i]));
-                //添加一个影子rect,用来支持交互
+                //添加一个影子rect,用来支持交互;这样鼠标移入矩形框,光标会发生变化
                 var tempBarGShadow = sel.append("g")
                     .attr("id", "tempBarShadow" + provinces[i].id)
                     .attr("width", bbox.width)
@@ -137,11 +148,11 @@ function createExpMap() {
                     .attr("cursor", "pointer")
                     .attr("transform", "translate(" + bbox.x + "," + bbox.y + ")");
 
-                for (var j = 0; j < size; j++) {
+                for (var j = 0; j < density; j++) {
                     tempBarGShadow.append("rect")
                         .attr("id", "tempbarshadowRectId" + j)
-                        .attr("x", (j * bbox.width ) / size)//TODO sort
-                        .attr("width", bbox.width / size)
+                        .attr("x", (j * bbox.width ) / density)//TODO sort
+                        .attr("width", bbox.width / density)
                         .attr("y", 0)
                         .attr("height", bbox.height)
                         .attr("fill", "rgba(1,0,0,0)")
@@ -149,13 +160,13 @@ function createExpMap() {
                         .attr("clip-path", "url(#clippath" + provinces[i].id + ")")
 
                         .on("mouseout", function () {
-                            var filterId = function(ids){
-                                return ids.substr(19);
-                            };
-                            var id = "tempbarRectId"+filterId(this.id);
-                            d3.selectAll("rect").attr("filter", function(){
-                                return "";
-                            });
+                            //var filterId = function(ids){
+                            //    return ids.substr(19);
+                            //};
+                            //var id = "tempbarRectId"+filterId(this.id);
+                            //d3.selectAll("rect").attr("filter", function(){
+                            //    return "";
+                            //});
                         })
                         .on("mousedown", function () {
                             console.log("mouse down");
@@ -172,6 +183,7 @@ function createExpMap() {
 
                             var clip = this.getAttribute("clip-path");
                             var selectedProv = clip.substring(13,clip.length-1);
+                            //在这里记录了实验者点击的省份和index
                             console.log("selected province:"+ selectedProv+":"+filterId(this.id));
 
                         })
