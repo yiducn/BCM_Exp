@@ -2,8 +2,11 @@
 
 /**
  * 创建实验地图
+ * isGlobal: 是否全局测试
+ *  true:没有边框,全局测试
+ *  false:有边框,局部测试
  */
-function createExpMap() {
+function createExpMap(isGlobal) {
 
     /**
      * y 取1.05,1.1,1.2,1.4,1.8
@@ -175,6 +178,22 @@ function createExpMap() {
                     .attr('d', path(provinces[indexOfProv]))
                     .attr("fill", "url(#" + "pat" + provinces[indexOfProv].id + ")")
                     .attr('fill-opacity', '1.0');
+            }
+
+            {//根据全局属性,绘制
+                if(!isGlobal) {
+                    var bbox = Snap.path.getBBox(path(provinces[indexOfProv]));
+                    sel.append("rect")
+                        .attr("x", -10)//TODO sort
+                        .attr("width", bbox.width+20)
+                        .attr("y", -10)
+                        .attr("height", bbox.height + 20)
+                        .attr("stroke", "#000000")
+                        .attr("stroke-width", 2)
+                        .attr("fill", colorScale(temp))//填充颜色
+                        .attr("fill-opacity", 0)
+                        .attr("transform", "translate(" + bbox.x + "," + bbox.y + ")");;
+                }
             }
 
             for (var i = 0; i < provinces.length; i++) {
