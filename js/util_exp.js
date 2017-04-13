@@ -9,14 +9,17 @@ function createExpMap() {
      * y 取1.05,1.1,1.2,1.4,1.8
      * x 1- 95,90,83,71,55
      */
-    var trailIndex = 2;//控制数据波动的参数,0-4 5类
+    var dataChangeIndex = 3;//控制数据波动的参数,0-4 5类
     var yList = [1.05,1.1,1.2,1.4,1.8];
     var xList = [95, 90, 83, 71, 55];
-    var y2 = yList[trailIndex];//
+    var y2 = yList[dataChangeIndex];//
     function x() {
-        return Math.random() * xList[trailIndex];
+        return Math.random() * xList[dataChangeIndex];
     }
-    var density = 8;//2,4,8,12,16,24
+
+    var densityIndex = 1;
+    var densityList = [2, 4, 8, 12, 16, 24];
+    var density = densityList[densityIndex];//2,4,8,12,16,24
     var indexOfProv = parseInt(Math.random()*32);//全局最大所在的省份
 
 
