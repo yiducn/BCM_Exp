@@ -1,28 +1,36 @@
+
+
 /**
  * 创建实验地图
  */
 function createExpMap() {
 
-    //TODO 生成实验数据
-    var y = 20;//40, 60
+    /**
+     * y 取1.05,1.1,1.2,1.4,1.8
+     * x 1- 95,90,83,71,55
+     */
+    var trailIndex = 2;//控制数据波动的参数,0-4 5类
+    var yList = [1.05,1.1,1.2,1.4,1.8];
+    var xList = [95, 90, 83, 71, 55];
+    var y2 = yList[trailIndex];//
     function x() {
-        return Math.random() * 60;
-        //40,20
+        return Math.random() * xList[trailIndex];
     }
     var density = 8;//2,4,8,12,16,24
     var indexOfProv = parseInt(Math.random()*32);//全局最大所在的省份
-    
+
 
 
     var width = 960,
-        height = 500;
-    var colors = ["#FF0000", "#FFFF00"];
+        height = 700;
+    //var colors = ["#FF0000", "#FFFF00"];
+    var colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
     var colorScale = d3.scale.linear()
-        .domain([100, 0]).range(colors);
+        .domain([0,12,24,36,48,60,72,84,100]).range(colors);
 
     var projection = d3.geo.mercator()
         .center([107, 31])
-        .scale(400)
+        .scale(600)
         .translate([width / 2, height / 2]);
 
     var path = d3.geo.path()
@@ -102,10 +110,14 @@ function createExpMap() {
                         "," + -bbox.y + ")";
                 });
 
+            var indexMax = parseInt(Math.random() * density);//最大数值所在的位置[0,density)
             /**
              * <circle cx="145" cy="40" r="20"
              style="fill: #0000ff; clip-path: url(#clipPath); " />
              */
+            //绘制矩形框,并填充颜色
+            //记录最大的正常值
+            var maxNormalValue = 0;
             for (var i = 0; i < provinces.length; i++) {
                 var d = provinces[i];
 
@@ -119,23 +131,48 @@ function createExpMap() {
                     .attr("transform", "translate(" + bbox.x + "," + bbox.y + ")");
 
                 for (var j = 0; j < density; j++) {
-                    tempBarG.append("rect")
-                        .attr("id", "tempbarRectId" + j)
-                        .attr("x", (j * bbox.width ) / density)//TODO sort
-                        .attr("width", bbox.width / density)
-                        .attr("y", 0)
-                        .attr("height", bbox.height)
-                        .attr("fill", colorScale(x()))//TODO
-                        .attr("clip-path", "url(#clippath" + provinces[i].id + ")");
+                    var value = x();
+                    if(maxNormalValue < value)
+                        maxNormalValue = value;//
+
+                    if(indexOfProv == i && j == indexMax){//最大值绘制
+                        //
+                    }else{
+                        tempBarG.append("rect")
+                            .attr("id", "tempbarRectId" + j)
+                            .attr("x", (j * bbox.width ) / density)//TODO sort
+                            .attr("width", bbox.width / density)
+                            .attr("y", 0)
+                            .attr("height", bbox.height)
+                            .attr("fill", colorScale(value))//填充颜色
+                            .attr("clip-path", "url(#clippath" + provinces[i].id + ")");
+                    }
                 }
 
                 sel.append('path')
                     .attr('d', path(provinces[i]))
                     .attr("fill", "url(#" + "pat" + d.id + ")")
-                    .attr('fill-opacity', '0.9');
-
+                    .attr('fill-opacity', '1.0');
             }
 
+            {//处理并生成并绘制最大值
+                var temp = maxNormalValue * y2;//+ y;
+                var bbox = Snap.path.getBBox(path(provinces[indexOfProv]));
+                var tempBarG = d3.selectAll("#tempBar" + provinces[indexOfProv].id);
+                tempBarG.append("rect")
+                    .attr("id", "tempbarRectId" + indexMax)
+                    .attr("x", (indexMax * bbox.width ) / density)//TODO sort
+                    .attr("width", bbox.width / density)
+                    .attr("y", 0)
+                    .attr("height", bbox.height)
+                    .attr("fill", colorScale(temp))//填充颜色
+                    .attr("clip-path", "url(#clippath" + provinces[indexOfProv].id + ")");
+                console.log("测试数据位置:"+indexOfProv+":"+indexMax+":"+temp);
+                sel.append('path')
+                    .attr('d', path(provinces[indexOfProv]))
+                    .attr("fill", "url(#" + "pat" + provinces[indexOfProv].id + ")")
+                    .attr('fill-opacity', '1.0');
+            }
 
             for (var i = 0; i < provinces.length; i++) {
                 var d = provinces[i];
