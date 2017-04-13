@@ -1,4 +1,21 @@
 
+var trialCount = 0;//实验的次数
+
+/**
+ * 初始化实验参数
+ */
+function initExp1(){
+    trialCount = 0;
+
+}
+
+/**
+ * TODO 开始下一个实验
+ */
+function nextTrial(){
+
+}
+
 
 /**
  * 创建实验地图
@@ -46,7 +63,7 @@ function createExpMap(isGlobal) {
     d3.json("data/china_provinces_remove2.json",
         function (data) {
             var provinces = data.features;
-            var sel = d3.select("body").append("svg")
+            var sel = d3.select("#choroplethMap").append("svg")
                 .attr("width", width)
                 .attr("height", height);
 
@@ -192,7 +209,7 @@ function createExpMap(isGlobal) {
                         .attr("stroke-width", 2)
                         .attr("fill", colorScale(temp))//填充颜色
                         .attr("fill-opacity", 0)
-                        .attr("transform", "translate(" + bbox.x + "," + bbox.y + ")");;
+                        .attr("transform", "translate(" + bbox.x + "," + bbox.y + ")");
                 }
             }
 

@@ -7,19 +7,23 @@
     <script src="js/jquery-3.1.1.min.js"></script>
     <script src="js/tether.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <!--<script src="js/bootstrap.js"></script>-->
     <script src="js/d3.js/d3.js"></script>
-    <script src="js/snap/snap.svg-min.js"></script>
-    <script src="js/util_exp.js"></script>
 </head>
 <body>
-
-<div id="choroplethMap">
+<div>
+    实验说明:
 
 </div>
 
+<div style="margin-left:0px; margin-right: 0px;text-align:center" onclick="startExp1();">
+    <button type="button" class="btn btn-default btn-lg">
+    开始实验
+    </button>
+</div>
 <script>
-createExpMap(false);
+    function startExp1(){
+        window.location.href = "exp1_start.html";
+    }
 </script>
 </body>
 </html>
