@@ -3,8 +3,8 @@
  * */
 
 //配置参数,修改该变量修改配置
-var conf_densityList = [2, 4, 8];//, 12, 16, 24];//密度列表
-var conf_regionList = [1.05,1.1,1.2, 1.4];//,1.4,1.8];//数据波动列表
+var conf_densityList = [2, 4, 8, 12, 16, 24];//密度列表
+var conf_regionList = [1.05,1.1,1.2, 1.4,1.8];//数据波动列表
 var conf_regionListX = [];//随机数的范围最大值,数据波动
 var conf_repeat = 2; //block重复次数
 
@@ -16,6 +16,7 @@ var trialCountLocal = 0;//Local实验的次数
 //
 var densityOrder = [];//密度列表洗牌后的顺序
 var regionOrder = [];//数据波动情况洗牌后的顺序
+var regionXOrder = [];//
 
 /**
  * 初始化实验参数
@@ -23,15 +24,16 @@ var regionOrder = [];//数据波动情况洗牌后的顺序
 function initExp1(){
     //JSON.stringify
     for(var i = 0; i < conf_regionList.length; i ++){
-        conf_regionListX[i] = 100 / conf_regionList[i];
+        conf_regionListX[i] = 100.0 / conf_regionList[i];
     }
     totalTrialCountGlobal = conf_densityList.length*conf_repeat*conf_regionList.length;
     totalTrialCountLocal = conf_densityList.length*conf_repeat*conf_regionList.length;
+    console.log("本次实验需要:"+(totalTrialCountGlobal+totalTrialCountLocal)+"次");
 
     //洗牌
     //https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
     //https://www.zhihu.com/question/32303195
-    var tempArray = []
+    var tempArray = [];
     for (var i = 0, len = conf_densityList.length; i < len; i++) {
         tempArray[i] = conf_densityList[i];
     }
@@ -41,13 +43,17 @@ function initExp1(){
         tempArray.splice(j, 1);
     }
 
+    var tempArray2 = [];
     for (var i = 0, len = conf_regionList.length; i < len; i++) {
         tempArray[i] = conf_regionList[i];
+        tempArray2[i] = conf_regionListX[i];
     }
     for (var i = 0, len = tempArray.length; i < len; i++) {
         var j = Math.floor(Math.random() * tempArray.length);
         regionOrder[i] = tempArray[j];
+        regionXOrder[i] = tempArray2[j];
         tempArray.splice(j, 1);
+        tempArray2.splice(j,1);
     }
 
     nextTrial();
@@ -62,13 +68,13 @@ function nextTrial(){
         var densityIndex = parseInt( (trialCountGlobal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
         var regionIndex =  (trialCountGlobal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
         console.log("densityIndexGlobal:regionIndex:"+densityIndex+":"+regionIndex);
-        createExpMap(true, densityOrder[densityIndex], regionOrder[regionIndex], conf_regionListX[regionIndex]);
+        createExpMap(true, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
     }else if(trialCountLocal ++ < (totalTrialCountLocal - 1)){
         $("#title").text("请找出框出区域的最大值:");
         var densityIndex = parseInt( (trialCountLocal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
         var regionIndex =  (trialCountLocal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
         console.log("densityIndexLocal:regionIndex:"+densityIndex+":"+regionIndex);
-        createExpMap(false, densityOrder[densityIndex], regionOrder[regionIndex], conf_regionListX[regionIndex]);
+        createExpMap(false, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
     }else{
         console.log("实验结束")
     }
@@ -82,7 +88,7 @@ function nextTrial(){
  *  false:有边框,局部测试
  */
 function createExpMap(isGlobal, density, region, regionX) {
-    //console.log(isGlobal + ":"+density+":"+region+":"+regionX);
+    console.log(isGlobal + ":"+density+":"+region+":"+regionX);
     $("#choroplethMap").empty();
 
     /**
@@ -241,7 +247,7 @@ function createExpMap(isGlobal, density, region, regionX) {
                     .attr("height", bbox.height)
                     .attr("fill", colorScale(temp))//填充颜色
                     .attr("clip-path", "url(#clippath" + provinces[indexOfProv].id + ")");
-                console.log("测试数据位置:"+provinces[indexOfProv].id+":"+indexMax+":数值:"+temp);
+                console.log("测试数据位置:"+provinces[indexOfProv].id+":"+indexMax+":数值:"+temp+":length"+density+":"+region);
                 sel.append('path')
                     .attr('d', path(provinces[indexOfProv]))
                     .attr("fill", "url(#" + "pat" + provinces[indexOfProv].id + ")")
