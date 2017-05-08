@@ -2,9 +2,11 @@
  *
  * */
 
+    //TODO 还 应该记录最大的十组数据,这样后续可以分析选中了次大的,或第三大的数据的情况
+
 //配置参数,修改该变量修改配置
-var conf_densityList = [2, 4, 8, 12, 16, 24];//密度列表
-var conf_regionList = [1.05,1.1,1.2, 1.4,1.8];//数据波动列表
+var conf_densityList = [2, 4, 8];//, 12, 16, 24];//密度列表
+var conf_regionList = [1.05];//,1.1,1.2, 1.4,1.8];//数据波动列表
 var conf_regionListX = [];//随机数的范围最大值,数据波动
 var conf_repeat = 2; //block重复次数
 
@@ -17,6 +19,12 @@ var trialCountLocal = 0;//Local实验的次数
 var densityOrder = [];//密度列表洗牌后的顺序
 var regionOrder = [];//数据波动情况洗牌后的顺序
 var regionXOrder = [];//
+
+var maxTop5 = [];
+var startTime = 0;
+var endTime = 0;
+var result = [];//实验结果
+var oneTrial = {};//一次实验结果
 
 /**
  * 初始化实验参数
@@ -63,6 +71,8 @@ function initExp1(){
  * TODO 开始下一个实验
  */
 function nextTrial(){
+    oneTrial = {};
+    oneTrial.trialCount = trialCountGlobal;
     if(trialCountGlobal ++ < totalTrialCountGlobal){
         //trialCountGlobal ++;
         var densityIndex = parseInt( (trialCountGlobal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
@@ -76,7 +86,20 @@ function nextTrial(){
         console.log("densityIndexLocal:regionIndex:"+densityIndex+":"+regionIndex);
         createExpMap(false, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
     }else{
+        $("#title").text("实验结束,感谢您的参与!");
+        $("#choroplethMap").empty();
         console.log("实验结束")
+
+        $.ajax({
+            url: "saveresult.do",
+            type:"post",
+            data:
+            "result="+JSON.stringify(result),
+            success: function () {
+                console.log("save result.");
+            },
+            async: false
+        });
     }
 }
 
@@ -89,6 +112,12 @@ function nextTrial(){
  */
 function createExpMap(isGlobal, density, region, regionX) {
     console.log(isGlobal + ":"+density+":"+region+":"+regionX);
+    //更新oneTrial 数据
+    oneTrial.isGlobal = isGlobal;
+    oneTrial.density = density;
+    oneTrial.region = region;
+    oneTrial.regionX = regionX;
+
     $("#choroplethMap").empty();
 
     /**
@@ -103,14 +132,14 @@ function createExpMap(isGlobal, density, region, regionX) {
     var indexOfProv = parseInt(Math.random()*32);//全局最大所在的省份
 
     var width = 960,
-        height = 700;
+        height = 400;
     var colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
     var colorScale = d3.scale.linear()
         .domain([0,12,24,36,48,60,72,84,100]).range(colors);
 
     var projection = d3.geo.mercator()
-        .center([107, 31])
-        .scale(600)
+        .center([107, 37])
+        .scale(450)
         .translate([width / 2, height / 2]);
 
     var path = d3.geo.path()
@@ -118,6 +147,7 @@ function createExpMap(isGlobal, density, region, regionX) {
 
     //加载中国地图,china_provinces_remove2删除了香港与澳门
     d3.json("data/china_provinces_remove2.json",
+        //d3.json("data/province01.json",//china_provinces_remove2.json",
         function (data) {
             var provinces = data.features;
             var sel = d3.select("#choroplethMap").append("svg")
@@ -212,6 +242,9 @@ function createExpMap(isGlobal, density, region, regionX) {
 
                 for (var j = 0; j < density; j++) {
                     var value = x();
+                    //计算并记录top 5 最大值
+                    recordMax(maxTop5, value, i, j);
+
                     if(maxNormalValue < value)
                         maxNormalValue = value;//
 
@@ -233,6 +266,13 @@ function createExpMap(isGlobal, density, region, regionX) {
                     .attr('d', path(provinces[i]))
                     .attr("fill", "url(#" + "pat" + d.id + ")")
                     .attr('fill-opacity', '1.0');
+            }
+
+            {
+                //打印记录的Top5
+                for(var i = 0; i < 5; i ++){
+                    console.log("max:"+maxTop5[i].value +":"+maxTop5[i].provinceIndex+":"+maxTop5[i].densityIndex);
+                }
             }
 
             {//处理并生成并绘制最大值
@@ -316,9 +356,18 @@ function createExpMap(isGlobal, density, region, regionX) {
 
                             var clip = this.getAttribute("clip-path");
                             var selectedProv = clip.substring(13,clip.length-1);
+                            endTime = new Date().getTime();
                             //在这里记录了实验者点击的省份和index
                             console.log("选中位置:"+ selectedProv+":"+filterId(this.id));
                             console.log("------");
+
+                            oneTrial.interval = endTime - startTime;
+                            oneTrial.maxTop5 = maxTop5;
+                            oneTrial.selectedProv = selectedProv;
+                            oneTrial.selectedIndex = filterId(this.id);
+                            if(result.length < (totalTrialCountGlobal + totalTrialCountLocal)){//如果到达最大次数,不再记录
+                                result.push(oneTrial);
+                            }
                             //TODO 记录结果
                             nextTrial();
 
@@ -329,5 +378,39 @@ function createExpMap(isGlobal, density, region, regionX) {
                 }
 
             }
+            startTime = new Date().getTime();
         });
+}
+
+/**
+ * 记录数值中的top 5 并返回结果
+ * @param maxTop5
+ * @param value
+ * @param provinceIndex
+ * @param densityIndex
+ */
+function recordMax(maxTop5, value, provinceIndex, densityIndex){
+    if(maxTop5.length < 5){
+        var d = {};
+        d.value = value;
+        d.provinceIndex = provinceIndex;
+        d.densityIndex = densityIndex;
+        maxTop5.push(d);
+    }else{
+        var min = Number.MAX_VALUE;
+        var minIndex = -1;
+        for(var i = 0; i < 5; i ++){
+            if(maxTop5[i].value < min){
+                min = maxTop5[i].value;
+                minIndex = i;
+            }
+        }
+        if(value > min){
+            var d = {};
+            d.value = value;
+            d.provinceIndex = provinceIndex;
+            d.densityIndex = densityIndex;
+            maxTop5[minIndex] = d;
+        }
+    }
 }
