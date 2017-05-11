@@ -4,14 +4,19 @@
 
     //TODO 还 应该记录最大的十组数据,这样后续可以分析选中了次大的,或第三大的数据的情况
 //配置参数,修改该变量修改配置
-var conf_densityList = [2, 4, 8];//, 12, 16, 24];//密度列表
-var conf_regionList = [1.05];//,1.1,1.2, 1.4,1.8];//数据波动列表
+var conf_densityList = [2, 4, 8, 12, 16, 24];//密度列表
+var conf_regionList = [1.05,1.1,1.2, 1.4];//,1.8];//数据波动列表
 var conf_regionListX = [];//随机数的范围最大值,数据波动
 var conf_repeat = 2; //block重复次数
 
 //用于被试者学习的配置参数,修改该变量修改配置
 var conf_densityList4Learning = [2, 4, 8, 12, 16, 24];//密度列表
 var conf_regionList4Learning = [1.05,1.1,1.2, 1.4,1.8];//数据波动列表
+
+//颜色范围
+var colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
+var colorScale = d3.scale.linear()
+    .domain([0,12,24,36,48,60,72,84,100]).range(colors);
 
 {
     //全局变量
@@ -86,7 +91,14 @@ var conf_regionList4Learning = [1.05,1.1,1.2, 1.4,1.8];//数据波动列表
             var regionIndex =  (trialCountGlobal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
             console.log("densityIndexGlobal:regionIndex:"+densityIndex+":"+regionIndex);
             createExpMap(true, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
-        }else if(trialCountLocal ++ < (totalTrialCountLocal)){
+        }
+        else if(trialCountGlobal == totalTrialCountGlobal){//最后一次结束
+            //TODO 休息一下?定义block
+            $("#choroplethMap").empty();
+
+            trialCountGlobal++;
+        }
+        else if(trialCountLocal ++ < totalTrialCountLocal){
             $("#title").text("请找出框出区域的最大值:");
             var densityIndex = parseInt( (trialCountLocal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
             var regionIndex =  (trialCountLocal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
@@ -142,9 +154,9 @@ var conf_regionList4Learning = [1.05,1.1,1.2, 1.4,1.8];//数据波动列表
 
         var width = 960,
             height = 400;
-        var colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
-        var colorScale = d3.scale.linear()
-            .domain([0,12,24,36,48,60,72,84,100]).range(colors);
+        //var colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
+        //var colorScale = d3.scale.linear()
+        //    .domain([0,12,24,36,48,60,72,84,100]).range(colors);
 
         var projection = d3.geo.mercator()
             .center([107, 38])
@@ -458,9 +470,9 @@ function createExpLearningMap(isGlobal) {
 
     var width = 960,
         height = 400;
-    var colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
-    var colorScale = d3.scale.linear()
-        .domain([0,12,24,36,48,60,72,84,100]).range(colors);
+    //var colors = ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'];
+    //var colorScale = d3.scale.linear()
+    //    .domain([0,12,24,36,48,60,72,84,100]).range(colors);
 
     var projection = d3.geo.mercator()
         .center([107, 38])

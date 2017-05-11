@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/tether.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+</head>
+<body>
+<div align="center">
+    <button type="button" class="btn btn-default btn-lg" onclick="toInfoCollect();">
+        基本信息采集
+    </button>
+    <button type="button" class="btn btn-default btn-lg" onclick="tolearn();">
+        训练
+    </button>
+    <button type="button" class="btn btn-default btn-lg" onclick="startExp();">
+        开始实验
+    </button>
+</div>
+
+<script>
+    function toInfoCollect(){
+        window.open("https://jinshuju.net/f/CoKfQo");
+    }
+    function tolearn(){
+        window.open("exp1_learn.html");
+//        window.location.href = "exp1_learn.html";
+    }
+    function startExp(){
+        window.open("exp1_start.html");
+//        window.location.href = "exp1_intro.html";
+    }
+</script>
+</body>
+</html>
