@@ -5,9 +5,9 @@
     //TODO 还 应该记录最大的十组数据,这样后续可以分析选中了次大的,或第三大的数据的情况
 //配置参数,修改该变量修改配置
 var conf_densityList = [2, 4, 8, 12, 16, 24];//密度列表
-var conf_regionList = [1.05,1.1,1.2, 1.4];//,1.8];//数据波动列表
+var conf_regionList = [1.05,1.1,1.2, 1.4,1.8];//数据波动列表
 var conf_regionListX = [];//随机数的范围最大值,数据波动
-var conf_repeat = 2; //block重复次数
+var conf_repeat = 10; //block重复次数
 
 //用于被试者学习的配置参数,修改该变量修改配置
 var conf_densityList4Learning = [2, 4, 8, 12, 16, 24];//密度列表
@@ -75,54 +75,188 @@ var colorScale = d3.scale.linear()
             tempArray2.splice(j,1);
         }
 
-        nextTrial();
+        nextTrial(0);
     }
 
     /**
      * TODO 开始下一个实验
+     * type:0为先全局任务; 1为先局部任务
      */
-    function nextTrial(){
-        oneTrial = {};
-        oneTrial.trialCount = trialCountGlobal;
-        maxTop5 = [];//每次实验时初始化最大值
-        if(trialCountGlobal ++ < totalTrialCountGlobal){
-            //trialCountGlobal ++;
-            var densityIndex = parseInt( (trialCountGlobal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
-            var regionIndex =  (trialCountGlobal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
-            console.log("densityIndexGlobal:regionIndex:"+densityIndex+":"+regionIndex);
-            createExpMap(true, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
-        }
-        else if(trialCountGlobal == totalTrialCountGlobal){//最后一次结束
-            //TODO 休息一下?定义block
-            $("#choroplethMap").empty();
+    function nextTrial(taskType){
+        if(taskType == 0){
+            oneTrial = {};
+            oneTrial.trialCount = trialCountGlobal;
+            maxTop5 = [];//每次实验时初始化最大值
+            if(trialCountGlobal ++ < totalTrialCountGlobal){
+                //trialCountGlobal ++;
+                var densityIndex = parseInt( (trialCountGlobal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
+                var regionIndex =  (trialCountGlobal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
+                console.log("densityIndexGlobal:regionIndex:"+densityIndex+":"+regionIndex);
+                createExpMap(true, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex], taskType);
+            }
+            else if(trialCountGlobal == totalTrialCountGlobal){//最后一次结束
+                //TODO 休息一下?定义block
+                $("#choroplethMap").empty();
 
-            trialCountGlobal++;
-        }
-        else if(trialCountLocal ++ < totalTrialCountLocal){
-            $("#title").text("请找出框出区域的最大值:");
-            var densityIndex = parseInt( (trialCountLocal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
-            var regionIndex =  (trialCountLocal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
-            console.log("densityIndexLocal:regionIndex:"+densityIndex+":"+regionIndex);
-            createExpMap(false, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
+                trialCountGlobal++;
+            }
+            else if(trialCountLocal ++ < totalTrialCountLocal){
+                $("#title").text("请找出框出区域的最大值:");
+                var densityIndex = parseInt( (trialCountLocal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
+                var regionIndex =  (trialCountLocal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
+                console.log("densityIndexLocal:regionIndex:"+densityIndex+":"+regionIndex);
+                createExpMap(false, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
+            }else{
+                $("#title").text("实验结束,感谢您的参与!");
+                $("#choroplethMap").empty();
+                console.log("实验结束")
+
+                $.ajax({
+                    url: "saveresult.do",
+                    type:"post",
+                    data:{
+                        result: JSON.stringify(result),
+                        subjectId:subjectId
+                    },
+                    success: function () {
+                        console.log("save result.");
+                    },
+                    async: false
+                });
+            }
         }else{
-            $("#title").text("实验结束,感谢您的参与!");
-            $("#choroplethMap").empty();
-            console.log("实验结束")
+            oneTrial = {};
+            oneTrial.trialCount = trialCountGlobal;
+            maxTop5 = [];//每次实验时初始化最大值
+            if(trialCountGlobal ++ < totalTrialCountGlobal){
+                //trialCountGlobal ++;
+                var densityIndex = parseInt( (trialCountGlobal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
+                var regionIndex =  (trialCountGlobal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
+                console.log("densityIndexGlobal:regionIndex:"+densityIndex+":"+regionIndex);
+                createExpMap(false, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
+            }
+            else if(trialCountGlobal == totalTrialCountGlobal){//最后一次结束
+                //TODO 休息一下?定义block
+                $("#choroplethMap").empty();
 
-            $.ajax({
-                url: "saveresult.do",
-                type:"post",
-                data:{
-                    result: JSON.stringify(result),
-                    subjectId:subjectId
-                },
-                success: function () {
-                    console.log("save result.");
-                },
-                async: false
-            });
+                trialCountGlobal++;
+            }
+            else if(trialCountLocal ++ < totalTrialCountLocal){
+                $("#title").text("请找出框出区域的最大值:");
+                var densityIndex = parseInt( (trialCountLocal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
+                var regionIndex =  (trialCountLocal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
+                console.log("densityIndexLocal:regionIndex:"+densityIndex+":"+regionIndex);
+                createExpMap(true, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex], taskType);
+            }else{
+                $("#title").text("实验结束,感谢您的参与!");
+                $("#choroplethMap").empty();
+                console.log("实验结束")
+
+                $.ajax({
+                    url: "saveresult.do",
+                    type:"post",
+                    data:{
+                        result: JSON.stringify(result),
+                        subjectId:subjectId
+                    },
+                    success: function () {
+                        console.log("save result.");
+                    },
+                    async: false
+                });
+            }
         }
     }
+
+    /**
+     * 初始化实验参数 先局部任务
+     */
+    function initExp2(){
+        subjectId = "id" + new Date().getTime();
+        //JSON.stringify
+        for(var i = 0; i < conf_regionList.length; i ++){
+            conf_regionListX[i] = 100.0 / conf_regionList[i];
+        }
+        totalTrialCountGlobal = conf_densityList.length*conf_repeat*conf_regionList.length;
+        totalTrialCountLocal = conf_densityList.length*conf_repeat*conf_regionList.length;
+        console.log("本次实验需要:"+(totalTrialCountGlobal+totalTrialCountLocal)+"次");
+
+        //洗牌
+        //https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+        //https://www.zhihu.com/question/32303195
+        var tempArray = [];
+        for (var i = 0, len = conf_densityList.length; i < len; i++) {
+            tempArray[i] = conf_densityList[i];
+        }
+        for (var i = 0, len = tempArray.length; i < len; i++) {
+            var j = Math.floor(Math.random() * tempArray.length);
+            densityOrder[i] = tempArray[j];
+            tempArray.splice(j, 1);
+        }
+
+        var tempArray2 = [];
+        for (var i = 0, len = conf_regionList.length; i < len; i++) {
+            tempArray[i] = conf_regionList[i];
+            tempArray2[i] = conf_regionListX[i];
+        }
+        for (var i = 0, len = tempArray.length; i < len; i++) {
+            var j = Math.floor(Math.random() * tempArray.length);
+            regionOrder[i] = tempArray[j];
+            regionXOrder[i] = tempArray2[j];
+            tempArray.splice(j, 1);
+            tempArray2.splice(j,1);
+        }
+
+        nextTrial(1);
+    }
+
+    //
+    ///**
+    // * TODO 开始下一个实验
+    // */
+    //function nextTrial2(){
+    //    oneTrial = {};
+    //    oneTrial.trialCount = trialCountGlobal;
+    //    maxTop5 = [];//每次实验时初始化最大值
+    //    if(trialCountGlobal ++ < totalTrialCountGlobal){
+    //        //trialCountGlobal ++;
+    //        var densityIndex = parseInt( (trialCountGlobal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
+    //        var regionIndex =  (trialCountGlobal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
+    //        console.log("densityIndexGlobal:regionIndex:"+densityIndex+":"+regionIndex);
+    //        createExpMap(false, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
+    //    }
+    //    else if(trialCountGlobal == totalTrialCountGlobal){//最后一次结束
+    //        //TODO 休息一下?定义block
+    //        $("#choroplethMap").empty();
+    //
+    //        trialCountGlobal++;
+    //    }
+    //    else if(trialCountLocal ++ < totalTrialCountLocal){
+    //        $("#title").text("请找出框出区域的最大值:");
+    //        var densityIndex = parseInt( (trialCountLocal - 1 ) % (conf_densityList.length * conf_regionList.length) / regionOrder.length );
+    //        var regionIndex =  (trialCountLocal - 1) % (conf_densityList.length * conf_regionList.length) % regionOrder.length;
+    //        console.log("densityIndexLocal:regionIndex:"+densityIndex+":"+regionIndex);
+    //        createExpMap(true, densityOrder[densityIndex], regionOrder[regionIndex], regionXOrder[regionIndex]);
+    //    }else{
+    //        $("#title").text("实验结束,感谢您的参与!");
+    //        $("#choroplethMap").empty();
+    //        console.log("实验结束")
+    //
+    //        $.ajax({
+    //            url: "saveresult.do",
+    //            type:"post",
+    //            data:{
+    //                result: JSON.stringify(result),
+    //                subjectId:subjectId
+    //            },
+    //            success: function () {
+    //                console.log("save result.");
+    //            },
+    //            async: false
+    //        });
+    //    }
+    //}
+
 
 
     /**
@@ -131,7 +265,7 @@ var colorScale = d3.scale.linear()
      *  true:没有边框,全局测试
      *  false:有边框,局部测试
      */
-    function createExpMap(isGlobal, density, region, regionX) {
+    function createExpMap(isGlobal, density, region, regionX, taskType) {
         console.log(isGlobal + ":"+density+":"+region+":"+regionX);
         //更新oneTrial 数据
         oneTrial.isGlobal = isGlobal;
@@ -396,7 +530,7 @@ var colorScale = d3.scale.linear()
                                     result.push(oneTrial);
                                 }
                                 //TODO 记录结果
-                                nextTrial();
+                                nextTrial(taskType);
 
                             })
                             .on("mouseover", function () {

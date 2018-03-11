@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/tether.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/d3.js/d3.js"></script>
+    <script src="js/snap/snap.svg-min.js"></script>
+    <script src="js/util_exp.js"></script>
+</head>
+<body>
+<div style="margin-left:0px; margin-right: 0px;text-align:center">
+    <h3 id="title">
+        请找出图中最大的数值:
+    </h3>
+</div>
+<div id="choroplethMap" style="margin-left:0px; margin-right: 0px;text-align:center">
+
+</div>
+<div id="legend" style="margin-left:0px; margin-right: 0px;text-align:center; height:10px;">
+    小
+    <svg width="150px" height="10px">
+        <defs>
+            <linearGradient id="legend" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#ffffcc;stop-opacity:1"/>
+                <stop offset="12%" style="stop-color:#ffeda0;stop-opacity:1"/>
+                <stop offset="24%" style="stop-color:#fed976;stop-opacity:1"/>
+                <stop offset="36%" style="stop-color:#feb24c;stop-opacity:1"/>
+                <stop offset="48%" style="stop-color:#fd8d3c;stop-opacity:1"/>
+                <stop offset="60%" style="stop-color:#fc4e2a;stop-opacity:1"/>
+                <stop offset="72%" style="stop-color:#e31a1c;stop-opacity:1"/>
+                <stop offset="84%" style="stop-color:#bd0026;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#800026;stop-opacity:1"/>
+            </linearGradient>
+        </defs>
+        <rect width="150" height="10" style="fill:url(#legend)"></rect>
+    </svg>
+    大
+</div>
+
+<!--<div style="margin-left:0px; margin-right: 0px;text-align:center">-->
+    <!--<button>下一题</button>下一题,是自动跳转 还是点击后跳转呢?-->
+<!--</div>-->
+<script>
+    initExp2();
+//    createExpMap(false);
+</script>
+</body>
+</html>
